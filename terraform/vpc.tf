@@ -7,14 +7,6 @@ resource "aws_security_group" "lambda" {
   vpc_id      = data.aws_vpc.default.id
   description = "Allow outbound traffic"
 
-  ingress {
-    from_port   = 2049
-    to_port     = 2049
-    protocol    = "tcp"
-    cidr_blocks = ["172.31.0.0/16"]
-    description = "Allow NFS traffic - TCP 2049"
-  }
-
   egress {
     description = "all"
     from_port   = 0
