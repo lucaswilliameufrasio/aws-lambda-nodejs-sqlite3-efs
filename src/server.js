@@ -4,6 +4,7 @@ const fastify = require('fastify')({
 const fs = require('fs')
 
 const Database = require('better-sqlite3')
+const { Redis } = require('ioredis')
 
 const port = process.env['PORT'] || 8080
 
@@ -35,12 +36,41 @@ function createDatabase(tryAgain = true) {
 
 const database = createDatabase()
 
+const redisURL = process.env.REDIS_URL
+
+const connectToRedis = () => {
+  try {
+    return new Redis(redisURL, {
+      maxRetriesPerRequest: null
+    })
+  } catch(error) {
+    console.error('Failed to connect to Redis', error)
+    throw error
+  }
+}
+
+const redis = connectToRedis()
+
 fastify.get('/', async (request, reply) => {
   return { hello: 'world' }
 })
 
 fastify.get('/users', async (request, reply) => {
   const users = database.prepare('SELECT * FROM users').all()
+
+  await redis.set('users', JSON.stringify(users))
+
+  return users
+})
+
+fastify.get('/users/cached', async (request, reply) => {
+  const cachedUsers = await redis.get('users')
+
+  if (!cachedUsers) {
+    return []
+  }
+
+  const users = JSON.parse(cachedUsers)
 
   return users
 })
