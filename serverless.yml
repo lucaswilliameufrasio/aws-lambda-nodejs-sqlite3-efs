@@ -17,6 +17,11 @@ provider:
             - 'elasticfilesystem:ClientMount'
             - 'elasticfilesystem:ClientWrite'
           Resource: ${ssm:/lambda-nodejs-sqlite3-efs/default/EFS_ARN}
+        # Allow connection to elastiCache
+        - Effect: Allow
+          Action: 
+            - 'elasticache:Connect'
+          Resource: ${ssm:/lambda-nodejs-sqlite3-efs/default/ELASTICACHE_ARN}
   vpc:
     securityGroupIds: ${ssm:/lambda-nodejs-sqlite3-efs/default/VPC_SG_IDS}
     subnetIds: ${ssm:/lambda-nodejs-sqlite3-efs/default/VPC_SUBNET_IDS}
@@ -25,6 +30,8 @@ provider:
     RUST_LOG: info
     NODE_ENV: production
     DATABASE_PATH: /mnt/volume/users.db
+    REDIS_URL: ${ssm:/lambda-nodejs-sqlite3-efs/default/REDIS_URL}
+    # DEBUG: "ioredis:*"
 
 package:
   patterns:
