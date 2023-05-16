@@ -18,6 +18,27 @@ resource "aws_security_group" "lambda" {
   tags = local.tags
 }
 
+resource "aws_security_group" "redis_sg" {
+  vpc_id      = data.aws_vpc.default.id
+  description = "Allow inbound traffic on port 6379"
+
+  ingress {
+      cidr_blocks = [data.aws_vpc.default.cidr_block]
+      from_port   = aws_elasticache_cluster.example.cache_nodes.0.port
+      to_port     = aws_elasticache_cluster.example.cache_nodes.0.port
+      protocol    = "tcp"
+  }
+
+  egress {
+    from_port       = 0
+    to_port         = 0
+    protocol        = "-1"
+    cidr_blocks     = ["0.0.0.0/0"]
+  }
+
+  tags = local.tags
+}
+
 resource "aws_subnet" "default" {
   vpc_id                  = data.aws_vpc.default.id
   cidr_block              = "172.31.100.0/24"
@@ -48,5 +69,4 @@ resource "aws_security_group" "efs_sg" {
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
   }
-
 }
